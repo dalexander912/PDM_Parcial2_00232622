@@ -19,7 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.pdmcourse2026.basictemplate.models.Option
+import com.pdmcourse2026.basictemplate.data.models.Option
 
 @Composable
 fun OptionCard(

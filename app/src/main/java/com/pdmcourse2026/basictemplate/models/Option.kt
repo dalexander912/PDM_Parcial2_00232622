@@ -1,8 +1,0 @@
-package com.pdmcourse2026.basictemplate.models
-
-data class Option(
-  val id: Int,
-  val imageUrl: String,
-  val name: String,
-  val votes: Int
-)
