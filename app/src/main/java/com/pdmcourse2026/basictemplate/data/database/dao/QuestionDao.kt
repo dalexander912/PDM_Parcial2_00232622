@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.pdmcourse2026.basictemplate.data.database.entities.QuestionEntity
 import com.pdmcourse2026.basictemplate.data.database.entities.QuestionWithOptions
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,9 @@ interface QuestionDao {
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertQuestion(question: QuestionEntity)
+
+  @Update
+  suspend fun updateQuestion(question: QuestionEntity)
 
   @Delete
   suspend fun deleteQuestion(question: QuestionEntity)

@@ -32,6 +32,13 @@ class OptionsViewModel(
     }
   }
 
+  fun updateOption(option: Option, value: String, imageUrl: String) {
+    viewModelScope.launch {
+      val updatedOption = option.copy(value = value, imageUrl = imageUrl)
+      optionRepository.updateOption(updatedOption)
+    }
+  }
+
   fun deleteOption(option: Option) {
     viewModelScope.launch {
       optionRepository.deleteOption(option)

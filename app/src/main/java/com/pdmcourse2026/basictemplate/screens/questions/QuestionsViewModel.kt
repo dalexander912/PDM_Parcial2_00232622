@@ -30,6 +30,13 @@ class QuestionsViewModel (
     }
   }
 
+  fun updateQuestion(question: Question, title: String) {
+    viewModelScope.launch {
+      val updatedQuestion = question.copy(title = title)
+      questionRepository.updateQuestion(updatedQuestion)
+    }
+  }
+
   fun deleteQuestion(question: Question) {
     viewModelScope.launch {
       questionRepository.deleteQuestion(question)

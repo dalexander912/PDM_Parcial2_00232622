@@ -23,18 +23,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pdmcourse2026.basictemplate.data.models.Option
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OptionBottomSheet(
+  optionToEdit: Option?,
   onSave: (name: String, imageUrl: String) -> Unit,
+  onEdit: (value: String, imageUrl: String) -> Unit,
   onDismiss: () -> Unit
 ) {
   val sheetState = rememberModalBottomSheetState()
-  var name by rememberSaveable { mutableStateOf("") }
-  var imageUrl by rememberSaveable { mutableStateOf("") }
+  var value by rememberSaveable { mutableStateOf(optionToEdit?.value ?: "") }
+  var imageUrl by rememberSaveable { mutableStateOf(optionToEdit?.imageUrl ?: "") }
 
-  val isValid = name.isNotBlank() && imageUrl.isNotBlank()
+  val isValid = value.isNotBlank()
 
   ModalBottomSheet(
     sheetState = sheetState,
@@ -48,19 +51,23 @@ fun OptionBottomSheet(
       verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
       Text(
-        text = "Nueva opción",
+        text =
+          if(optionToEdit == null) "Nueva opción"
+          else "Editando opción",
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold
       )
       Text(
-        text = "Agrega nombre e imagen para que aparezca en la lista.",
+        text =
+          if(optionToEdit == null) "Agrega nombre e imagen para que aparezca en la lista."
+          else "Edita el nombre o imagen para actualizar la lista",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
 
       OutlinedTextField(
-        value = name,
-        onValueChange = { name = it },
+        value = value,
+        onValueChange = { value = it },
         label = { Text("Nombre del lugar") },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true
@@ -82,8 +89,11 @@ fun OptionBottomSheet(
         Spacer(modifier = Modifier.width(8.dp))
         Button(
           onClick = {
-            if (isValid) {
-              onSave(name.trim(), imageUrl.trim())
+            if (optionToEdit == null) {
+              onSave(value.trim(), imageUrl.trim())
+              onDismiss()
+            } else {
+              onEdit(value.trim(), imageUrl.trim())
               onDismiss()
             }
           },

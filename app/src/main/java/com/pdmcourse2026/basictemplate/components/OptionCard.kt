@@ -37,7 +37,7 @@ fun OptionCard(
     Row(modifier = Modifier.padding(8.dp)) {
       AsyncImage(
         model = option.imageUrl,
-        contentDescription = option.name,
+        contentDescription = option.value,
         modifier = Modifier
           .size(width = 80.dp, height = 120.dp)
           .clip(RoundedCornerShape(8.dp)),
@@ -47,7 +47,7 @@ fun OptionCard(
       Column(
         verticalArrangement = Arrangement.SpaceEvenly
       ) {
-        Text(option.name, fontWeight = FontWeight.ExtraBold)
+        Text(option.value, fontWeight = FontWeight.ExtraBold)
         Text("Toca para votar")
       }
       Spacer(Modifier.width(16.dp))

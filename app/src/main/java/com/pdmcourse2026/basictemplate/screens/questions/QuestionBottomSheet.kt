@@ -23,17 +23,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pdmcourse2026.basictemplate.data.models.Question
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionBottomSheet(
+  questionToEdit: Question?,
   onSave: (title: String) -> Unit,
+  onEdit: (title: String) -> Unit,
   onDismiss: () -> Unit
 ) {
   val sheetState = rememberModalBottomSheetState()
-  var title by rememberSaveable { mutableStateOf("") }
+  var title by rememberSaveable { mutableStateOf(questionToEdit?.title ?: "") }
 
-  val isValid = title .isNotBlank()
+  val isValid = title.isNotBlank()
 
   ModalBottomSheet(
     sheetState = sheetState,
@@ -47,12 +50,16 @@ fun QuestionBottomSheet(
       verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
       Text(
-        text = "Nueva pregunta",
+        text =
+          if(questionToEdit == null) "Nueva pregunta"
+          else "Editando pregunta",
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold
       )
       Text(
-        text = "Agrega un título para que aparezca en la lista.",
+        text =
+          if(questionToEdit == null) "Agrega un título para que aparezca en la lista."
+          else "Edita el título para actualizar la lista",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
@@ -73,8 +80,11 @@ fun QuestionBottomSheet(
         Spacer(modifier = Modifier.width(8.dp))
         Button(
           onClick = {
-            if (isValid) {
+            if(questionToEdit == null) {
               onSave(title.trim())
+              onDismiss()
+            } else {
+              onEdit(title.trim())
               onDismiss()
             }
           },
