@@ -15,6 +15,8 @@ if (localPropertiesFile.exists()) {
   localProperties.load(FileInputStream(localPropertiesFile))
 }
 
+val apiToken: String = localProperties.getProperty("API_TOKEN") ?: ""
+
 android {
   namespace = "com.pdmcourse2026.basictemplate"
   compileSdk {
@@ -32,7 +34,7 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    //buildConfigField("String", "API_TOKEN", "\"$apiToken\"")
+    buildConfigField("String", "API_TOKEN", "\"$apiToken\"")
   }
 
   buildTypes {

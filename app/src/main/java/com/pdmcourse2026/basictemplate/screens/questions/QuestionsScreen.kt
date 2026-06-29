@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.ModeEditOutline
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,10 +52,35 @@ fun QuestionScreen(
   onBack: () -> Unit
 ) {
   val questions by viewModel.questions.collectAsStateWithLifecycle()
-  var showSheet by rememberSaveable { mutableStateOf(false) }
+  val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+  val error by viewModel.error.collectAsStateWithLifecycle()
 
+  var showSheet by rememberSaveable { mutableStateOf(false) }
   var questionToEdit by rememberSaveable { mutableStateOf<Question?>(null) }
 
+  // 1. Cargando: Room vacío y todavía esperando a la API
+  if (questions.isEmpty() && isRefreshing) {
+    Scaffold(topBar = { TopAppBar(title = { Text("Preguntas") }) }) { padding ->
+      CircularProgressIndicator(modifier = Modifier.padding(padding))
+    }
+    return
+  }
+
+  // 2. Error sin cache: la API falló y no hay nada guardado
+  if (questions.isEmpty() && error != null) {
+    Scaffold(topBar = { TopAppBar(title = { Text("Preguntas") }) }) { padding ->
+      Column(
+        modifier = Modifier.fillMaxSize().padding(padding)
+      ) {
+        Text("$error")
+        Spacer(Modifier.height(16.dp))
+        Button(onClick = { viewModel.refresh() }) { Text("Reintentar") }
+      }
+    }
+    return
+  }
+
+  // 3. Datos: hay cache (con o sin internet)
   Scaffold(
     containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     topBar = {
@@ -76,80 +104,85 @@ fun QuestionScreen(
       )
     }
   ) { innerPadding ->
-    Column(
+    PullToRefreshBox(
+      isRefreshing = isRefreshing,
+      onRefresh = { viewModel.refresh() },
       modifier = Modifier
         .fillMaxSize()
         .padding(innerPadding)
-        .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-      if(questions.isEmpty()) {
-        Column(
-          modifier = Modifier.fillMaxSize(),
-          verticalArrangement = Arrangement.Center,
-          horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-          Icon(
-            imageVector = Icons.Default.Inbox,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.height(36.dp)
-          )
-          Spacer(modifier = Modifier.height(12.dp))
-          Text(
-            text = "Todavia no hay preguntas",
-            style = MaterialTheme.typography.titleMedium
-          )
-          Text(
-            text = "Toca Nueva para crear la primera.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-        }
-      } else {
-        LazyColumn(
-          modifier = Modifier.fillMaxSize(),
-          contentPadding = PaddingValues(vertical = 4.dp),
-          verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-          items(items = questions, key = { it.id }) { question ->
-            ElevatedCard(
-              modifier = Modifier.clickable { onQuestionClick(question.id) }
-            ) {
-              ListItem(
-                headlineContent = {
-                  Text(
-                    text = question.title,
-                    style = MaterialTheme.typography.titleMedium
-                  )
-                },
-                supportingContent = {
-                  Text(
-                    text = "${question.optionCount} opciones",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                  )
-                },
-                trailingContent = {
-                  Row {
-                    IconButton(onClick = {
-                      questionToEdit = question
-                      showSheet = true
-                    }) {
-                      Icon(
-                        imageVector = Icons.Default.ModeEditOutline,
-                        contentDescription = "Editar pregunta"
-                      )
-                    }
-                    IconButton(onClick = { viewModel.deleteQuestion(question) }) {
-                      Icon(
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = "Borrar pregunta",
-                        tint = MaterialTheme.colorScheme.error
-                      )
+      Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+      ) {
+        if(questions.isEmpty()) {
+          Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+            Icon(
+              imageVector = Icons.Default.Inbox,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.outline,
+              modifier = Modifier.height(36.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+              text = "Todavia no hay preguntas",
+              style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+              text = "Toca Nueva para crear la primera.",
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+          }
+        } else {
+          LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+          ) {
+            items(items = questions, key = { it.id }) { question ->
+              ElevatedCard(
+                modifier = Modifier.clickable { onQuestionClick(question.id) }
+              ) {
+                ListItem(
+                  headlineContent = {
+                    Text(
+                      text = question.title,
+                      style = MaterialTheme.typography.titleMedium
+                    )
+                  },
+                  supportingContent = {
+                    Text(
+                      text = "${question.optionCount} opciones",
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                  },
+                  trailingContent = {
+                    Row {
+                      IconButton(onClick = {
+                        questionToEdit = question
+                        showSheet = true
+                      }) {
+                        Icon(
+                          imageVector = Icons.Default.ModeEditOutline,
+                          contentDescription = "Editar pregunta"
+                        )
+                      }
+                      IconButton(onClick = { viewModel.deleteQuestion(question.id) }) {
+                        Icon(
+                          imageVector = Icons.Default.DeleteOutline,
+                          contentDescription = "Borrar pregunta",
+                          tint = MaterialTheme.colorScheme.error
+                        )
+                      }
                     }
                   }
-                }
-              )
+                )
+              }
             }
           }
         }
@@ -164,7 +197,7 @@ fun QuestionScreen(
         viewModel.addQuestion(title)
       },
       onEdit = { title ->
-        viewModel.updateQuestion(questionToEdit!!, title)
+        viewModel.updateQuestion(questionToEdit!!.id, title)
       },
       onDismiss = {
         showSheet = false

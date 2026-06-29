@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.pdmcourse2026.basictemplate.data.database.entities.QuestionEntity
 import com.pdmcourse2026.basictemplate.data.database.entities.QuestionWithOptions
 import kotlinx.coroutines.flow.Flow
@@ -26,4 +27,7 @@ interface QuestionDao {
 
   @Delete
   suspend fun deleteQuestion(question: QuestionEntity)
+
+  @Upsert
+  suspend fun upsertAll(questions: List<QuestionEntity>)
 }
