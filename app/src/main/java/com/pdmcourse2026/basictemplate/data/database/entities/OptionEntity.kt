@@ -21,16 +21,18 @@ import com.pdmcourse2026.basictemplate.data.models.Option
 data class OptionEntity(
   @PrimaryKey(autoGenerate = true)
   val id: Int = 0,
-  val value: String,
+  val name: String,
   val imageUrl: String? = null,
+  val votes: Int,
   val questionId: Int,
 )
 
 fun OptionEntity.toModel(): Option {
   return Option(
     id = id,
-    value = value,
+    name = name,
     imageUrl = imageUrl,
+    votes = votes,
     questionId = questionId,
   )
 }
@@ -38,8 +40,9 @@ fun OptionEntity.toModel(): Option {
 fun Option.toEntity(): OptionEntity {
   return OptionEntity(
     id = id,
-    value = value,
+    name = name,
     imageUrl = imageUrl,
+    votes = votes,
     questionId = questionId,
   )
 }

@@ -7,6 +7,8 @@ import androidx.navigation3.ui.NavDisplay
 import com.pdmcourse2026.basictemplate.screens.home.HomeScreen
 import com.pdmcourse2026.basictemplate.screens.options.OptionsScreen
 import com.pdmcourse2026.basictemplate.screens.questions.QuestionScreen
+import com.pdmcourse2026.basictemplate.screens.results.ResultScreen
+import com.pdmcourse2026.basictemplate.screens.voting.VotingScreen
 
 @Composable
 fun RankeUca() {
@@ -19,7 +21,7 @@ fun RankeUca() {
       entry<Routes.Home> {
         HomeScreen(
           navigateToQuestion = { backStack.add(Routes.Questions) },
-          navigateToVote = {  }
+          navigateToVoting = { backStack.add(Routes.Voting) }
         )
       }
       entry<Routes.Questions> {
@@ -31,6 +33,18 @@ fun RankeUca() {
       entry<Routes.Options> { key ->
         OptionsScreen(
           questionId = key.questionId,
+          onBack = { backStack.removeLastOrNull() }
+        )
+      }
+      // Parcial 3
+      entry<Routes.Voting> {
+        VotingScreen(
+          onBack = { backStack.removeLastOrNull() },
+          navigateToResults = { backStack.add(Routes.Results) }
+        )
+      }
+      entry<Routes.Results> {
+        ResultScreen(
           onBack = { backStack.removeLastOrNull() }
         )
       }

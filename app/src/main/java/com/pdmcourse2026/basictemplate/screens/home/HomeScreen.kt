@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(
   navigateToQuestion: () -> Unit,
-  navigateToVote: () -> Unit
+  navigateToVoting: () -> Unit
 ) {
   Scaffold(
     containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -55,12 +55,9 @@ fun HomeScreen(
       Spacer(Modifier.height(32.dp))
       ElevatedCard(
         modifier = Modifier.fillMaxWidth().height(64.dp)
-          .clickable(
-            enabled = false,
-            onClick = navigateToVote
-          )
+          .clickable { navigateToVoting() }
       ) {
-        Text("Votar", modifier = Modifier.padding(16.dp))
+        Text("Voto masivo", modifier = Modifier.padding(16.dp))
       }
     }
   }

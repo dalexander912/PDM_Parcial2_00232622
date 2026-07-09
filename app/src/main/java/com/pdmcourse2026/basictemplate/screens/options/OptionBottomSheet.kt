@@ -34,7 +34,7 @@ fun OptionBottomSheet(
   onDismiss: () -> Unit
 ) {
   val sheetState = rememberModalBottomSheetState()
-  var value by rememberSaveable { mutableStateOf(optionToEdit?.value ?: "") }
+  var value by rememberSaveable { mutableStateOf(optionToEdit?.name ?: "") }
   var imageUrl by rememberSaveable { mutableStateOf(optionToEdit?.imageUrl ?: "") }
 
   val isValid = value.isNotBlank()

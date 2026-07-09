@@ -1,11 +1,13 @@
-package com.pdmcourse2026.basictemplate.screens.options
+package com.pdmcourse2026.basictemplate.screens.voting
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -33,43 +35,35 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.pdmcourse2026.basictemplate.data.models.Option
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OptionsScreen(
-  questionId: Int,
-  viewModel: OptionsViewModel = viewModel(
-    factory = OptionsViewModel.provideFactory(questionId)
-  ),
+fun VotingScreen(
+  viewModel: VotingViewModel = viewModel(factory = VotingViewModel .Factory),
+  navigateToResults: () -> Unit,
   onBack: () -> Unit
 ) {
+  val questions by viewModel.questions.collectAsStateWithLifecycle()
   val options by viewModel.options.collectAsStateWithLifecycle()
   val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
   val error by viewModel.error.collectAsStateWithLifecycle()
 
-  var showSheet by rememberSaveable { mutableStateOf(false) }
-  var optionToEdit by rememberSaveable { mutableStateOf<Option?>(null) }
-
   // 1. Cargando: Room vacío y todavía esperando a la API
-  if (options.isEmpty() && isRefreshing) {
-    Scaffold(topBar = { TopAppBar(title = { Text("Opciones") }) }) { padding ->
+  if (questions.isEmpty() && isRefreshing) {
+    Scaffold(topBar = { TopAppBar(title = { Text("Preguntas") }) }) { padding ->
       CircularProgressIndicator(modifier = Modifier.padding(padding))
     }
     return
   }
 
   // 2. Error sin cache: la API falló y no hay nada guardado
-  if (options.isEmpty() && error != null) {
-    Scaffold(topBar = { TopAppBar(title = { Text("Opciones") }) }) { padding ->
+  if (questions.isEmpty() && error != null) {
+    Scaffold(topBar = { TopAppBar(title = { Text("Preguntas") }) }) { padding ->
       Column(
         modifier = Modifier.fillMaxSize().padding(padding)
       ) {
@@ -86,14 +80,7 @@ fun OptionsScreen(
     containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     topBar = {
       TopAppBar(
-        title = { Text("Administrar opciones") },
-        actions = {
-          TextButton(onClick = { showSheet = true }) {
-            Icon(imageVector = Icons.Default.Add, contentDescription = "Nueva opción")
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Nuevo")
-          }
-        },
+        title = { Text("Voto masivo") },
         navigationIcon = {
           IconButton(onBack) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -115,27 +102,15 @@ fun OptionsScreen(
       Column(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
-        if (options.isEmpty()) {
+        if(questions.isEmpty()) {
           Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
           ) {
-            Icon(
-              imageVector = Icons.Default.Inbox,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.outline,
-              modifier = Modifier.height(36.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
             Text(
-              text = "Todavia no hay opciones",
+              text = "Todavia no hay preguntas",
               style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-              text = "Toca Nuevo para crear la primera.",
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
             )
           }
         } else {
@@ -144,64 +119,22 @@ fun OptionsScreen(
             contentPadding = PaddingValues(vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
           ) {
-            items(items = options, key = { it.id }) { option ->
-              ElevatedCard {
-                ListItem(
-                  headlineContent = {
-                    Text(
-                      text = option.name,
-                      style = MaterialTheme.typography.titleMedium
-                    )
-                  },
-                  supportingContent = {
-                    Text(
-                      text = option.imageUrl ?: "Sin imagen",
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                  },
-                  trailingContent = {
-                    Row {
-                      IconButton(onClick = {
-                        optionToEdit = option
-                        showSheet = true
-                      }) {
-                        Icon(
-                          imageVector = Icons.Default.ModeEditOutline,
-                          contentDescription = "Editar opción"
-                        )
-                      }
-                      IconButton(onClick = { viewModel.deleteOption(option.id) }) {
-                        Icon(
-                          imageVector = Icons.Default.DeleteOutline,
-                          contentDescription = "Borrar opción",
-                          tint = MaterialTheme.colorScheme.error
-                        )
-                      }
+            items(items = questions, key = { it.id }) { question ->
+              ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Text(question.title)
+                for (option in options) {
+                  if(option.questionId == question.id) {
+                    Row() {
+                      Button({}) { Text(option.name) }
                     }
                   }
-                )
+                }
               }
             }
+            item { Button(navigateToResults) { Text("Votar") } }
           }
         }
       }
     }
-  }
-
-  if (showSheet) {
-    OptionBottomSheet(
-      optionToEdit = optionToEdit,
-      onSave = { value, imageUrl ->
-        viewModel.addOption(value, imageUrl)
-      },
-      onEdit = { value, imageUrl ->
-        viewModel.updateOption(optionToEdit!!.id, value, imageUrl, optionToEdit!!.questionId)
-      },
-      onDismiss = {
-        showSheet = false
-        optionToEdit = null
-      }
-    )
   }
 }

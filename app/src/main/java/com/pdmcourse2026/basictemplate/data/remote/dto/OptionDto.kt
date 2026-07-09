@@ -7,16 +7,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class OptionDto (
   val id: Int = 0,
-  val value: String,
+  val name: String,
   val imageUrl: String? = null,
+  val votes: Int,
   val questionId: Int = 0
 )
 
 fun OptionDto.toModel(): Option {
   return Option(
     id = id,
-    value = value,
+    name = name,
     imageUrl = imageUrl,
+    votes = votes,
     questionId = questionId
   )
 }
@@ -24,8 +26,9 @@ fun OptionDto.toModel(): Option {
 fun OptionDto.toEntity(): OptionEntity {
   return OptionEntity(
     id = id,
-    value = value,
+    name = name,
     imageUrl = imageUrl,
+    votes = votes,
     questionId = questionId
   )
 }
